@@ -43,8 +43,9 @@ built from GitHub `main` via the blueprint in `render.yaml`.
 - **Free plan has no persistent disk.** `data.json` sits in the app directory and
   is wiped on every deploy/restart; the service also sleeps after 15 min idle
   (~30 s cold start). The board is a demo board, not a ledger of record.
-- To make it durable: switch to `plan: starter`, uncomment the `disk:` block
-  (mount `/var/data`) and the `DATA_FILE` env var in `render.yaml`.
+- To make it durable: switch to a paid plan (`plan: 0.5c-512mb` — Render only
+  allows disks on paid services), uncomment the `disk:` block (mount
+  `/var/data`) and the `DATA_FILE` env var in `render.yaml`.
 - `ADMIN_TOKEN` is `sync: false`, so it is entered in the dashboard, never in
   git. If it is left empty, anyone with the URL can run `clear`/`demo`.
 - `TRUST_PROXY=1` is set so rate limits bucket by `X-Forwarded-For`.
@@ -150,7 +151,7 @@ Render's proxy).
 
 - Create the Render Blueprint from `render.yaml` and enter `ADMIN_TOKEN`; then
   smoke-test the live URL (board loads, claim + handshake works, assets 200).
-- Optional: move to `plan: starter` + disk if the board must survive deploys.
+- Optional: move to a paid plan + disk if the board must survive deploys.
 
 ## Recent work log
 

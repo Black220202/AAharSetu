@@ -11,7 +11,8 @@ services:
 
     # Free plan = ephemeral filesystem: data.json lives in the app directory and
     # is wiped on every deploy/restart, and the service sleeps after 15 min idle.
-    # To make the board durable, upgrade to `plan: starter` and uncomment:
+    # To make the board durable, upgrade to a paid plan (`plan: 0.5c-512mb`)
+    # and uncomment:
     #
     # disk:
     #   name: aahar-data
