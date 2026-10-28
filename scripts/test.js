@@ -79,6 +79,18 @@ async function run() {
   const alive = await request("GET", "/api/state");
   check("server still serving /api/state after malformed paths", alive.status === 200);
 
+  console.log("\nstatic serving is an allowlist (data file + source stay private)");
+  for (const p of ["/data.json", "/server.js", "/package.json", "/AGENTS.md", "/.gitignore"]) {
+    const r = await request("GET", p);
+    check("GET " + p + " -> 404", r.status === 404, String(r.status));
+  }
+  const page = await request("GET", "/");
+  check("GET / serves the page", page.status === 200 && /<html/i.test(page.raw), String(page.status));
+  for (const p of ["/app.js", "/styles.css", "/favicon.svg"]) {
+    const r = await request("GET", p);
+    check("GET " + p + " -> 200", r.status === 200 && r.raw.length > 0, String(r.status));
+  }
+
   console.log("\nchannel guards on terminal ops");
   await post("clear");
   const human = seedBatch();

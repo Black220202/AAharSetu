@@ -26,7 +26,7 @@ client. `"engines": { "node": ">=18" }`.
 ```bash
 npm start          # boots server.js on PORT (default 3000); LAN URL printed at boot
 npm run check      # syntax-check server+client + location-catalogue drift check
-npm test           # 43 end-to-end API assertions on a scratch port/datafile
+npm test           # 52 end-to-end API assertions on a scratch port/datafile
 npm run check:ui   # drives the real UI in headless Edge via CDP, asserts no console errors
 ```
 
@@ -82,19 +82,24 @@ These are the rules that earlier bugs violated. Treat each as law.
    removing the check.
 8. **Writes are single-op mutations**, never whole-state overwrites, so two
    devices claiming one batch can't clobber each other.
+9. **Static serving is an allowlist** (`STATIC_ASSETS` = index.html, app.js,
+   styles.css, favicon.svg). Never serve arbitrary files under `ROOT`: on a
+   public host `GET /data.json` would hand out every live handshake code and
+   expose `server.js`/`AGENTS.md`. `npm test` asserts those paths 404 — add a new
+   asset to the set instead of loosening the check.
 
 ## Architecture map
 
 | File | Role |
 |---|---|
-| `server.js` | Single authoritative server. Validation (`sanitizeBatch`), TTL sweep, serialized op queue, atomic persist, rate limiting, CSP security headers, static file serving. |
+| `server.js` | Single authoritative server. Validation (`sanitizeBatch`), TTL sweep, serialized op queue, atomic persist, rate limiting, CSP security headers, allowlisted static serving. |
 | `app.js` | Single-page client. Ops mirror the server; falls back to `localStorage` + `localOp` when the server is unreachable. ES5, no externals. |
 | `index.html` | One page, 4 tab-panels (donor / live feed / compost / impact). No inline scripts — CSP forbids them. |
 | `styles.css` | All styling. Dark theme, Inter/Space Grotesk/JetBrains Mono via Google Fonts (whitelisted in CSP). |
 | `data.json` | Board persistence file. **Gitignored**; may be absent or `[]` on boot. |
 | `package.json` | `start` / `check` / `test` / `check:ui` scripts. |
 | `render.yaml` | Render (free web service) manifest. Env: `ADMIN_TOKEN` (`sync:false`), `TRUST_PROXY=1`, optional `DATA_FILE`+disk for durable storage. |
-| `scripts/test.js` | 43-assertion API test (spawns servers on scratch ports, tests admin-token and keep-alive behaviour). |
+| `scripts/test.js` | 52-assertion API test (spawns servers on scratch ports, tests admin-token and keep-alive behaviour). |
 | `scripts/check-locations.js` | Drift check between the two location catalogues. |
 | `scripts/browser-check.js` | Headless-Edge CDP driver; boots the real page and asserts the UI flow + no console errors. |
 
@@ -135,7 +140,7 @@ Render's proxy).
   handshake-theater, channel-guarded terminal ops, silent persist failures,
   413 keep-alive poisoning, admin-token gate. Plus: hidden-toast click
   swallow, missing favicon, proxy rate-limit bucketing, dead `id()`.
-- `scripts/test.js` = **43 pass / 0 fail**; `npm run check` green;
+- `scripts/test.js` = **52 pass / 0 fail**; `npm run check` green;
   `npm run check:ui` green (real UI in headless Edge, zero console errors).
 - Data file is empty (`[]`) — a live board.
 - `render.yaml` is free-plan safe (no disk, `region: singapore`); deployment
@@ -149,6 +154,10 @@ Render's proxy).
 
 ## Recent work log
 
+- (2026-10-29) Public-hosting hardening: the static handler served any file under
+  `ROOT`, so a deployed instance leaked `data.json` (live handshake codes) and
+  its own source. Replaced with a `STATIC_ASSETS` allowlist; added 9 assertions
+  (52 total) for private paths + real assets; `npm run check:ui` still green.
 - (2026-10-29) Render deployment prep: rewrote `render.yaml` for the free plan
   (removed the disk, which Render only allows on paid services — the old
   blueprint would fail), added `region: singapore`, kept `ADMIN_TOKEN`

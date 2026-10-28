@@ -357,6 +357,12 @@ const MIME = {
   ".ico": "image/x-icon"
 };
 
+// The only files this server hands out. Everything else under ROOT stays
+// private: data.json holds live handshake codes (a one-time secret), and
+// server.js / AGENTS.md are not browsable source. An allowlist, not a denylist,
+// so a new private file can't leak just by existing.
+const STATIC_ASSETS = new Set(["/index.html", "/app.js", "/styles.css", "/favicon.svg"]);
+
 const rate = new Map();
 
 // Behind a trusted proxy every socket shares one address, so bucket by the
@@ -488,7 +494,11 @@ function handle(req, res) {
     return send(res, 400, { ok: false, error: "bad path" });
   }
   if (name.includes("\0") || name.includes("..")) return send(res, 403, "forbidden", "text/plain; charset=utf-8");
-  const file = path.join(ROOT, name === "/" ? "index.html" : name);
+
+  const asset = name === "/" ? "/index.html" : name;
+  if (!STATIC_ASSETS.has(asset)) return send(res, 404, "not found", "text/plain; charset=utf-8");
+
+  const file = path.join(ROOT, asset.slice(1));
   fs.readFile(file, (err, data) => {
     if (err) return send(res, 404, "not found", "text/plain; charset=utf-8");
     const type = MIME[path.extname(file).toLowerCase()] || "application/octet-stream";

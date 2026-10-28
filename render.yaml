@@ -6,7 +6,7 @@ services:
     region: singapore
     buildCommand: npm install
     startCommand: node server.js
-    autoDeploy: true
+    autoDeployTrigger: commit
     healthCheckPath: /
 
     # Free plan = ephemeral filesystem: data.json lives in the app directory and
