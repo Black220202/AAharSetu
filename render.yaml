@@ -1,9 +1,32 @@
 services:
   - type: web
-    name: foodrescue
+    name: aaharsetu
     runtime: node
     plan: free
+    region: singapore
     buildCommand: npm install
     startCommand: node server.js
     autoDeploy: true
     healthCheckPath: /
+
+    # Free plan = ephemeral filesystem: data.json lives in the app directory and
+    # is wiped on every deploy/restart, and the service sleeps after 15 min idle.
+    # To make the board durable, upgrade to `plan: starter` and uncomment:
+    #
+    # disk:
+    #   name: aahar-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    #
+    # ...plus this env var:
+    #
+    #   - key: DATA_FILE
+    #     value: /var/data/data.json
+
+    envVars:
+      # Leave empty to disable board-wide gating, but then anyone with the URL
+      # can run "clear"/"demo". Set a strong value at deploy time.
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: TRUST_PROXY
+        value: "1"

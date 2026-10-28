@@ -1,10 +1,13 @@
 {
-  "name": "foodrescue-sppu-cep",
-  "version": "1.0.0",
-  "description": "FoodRescue — SPPU CEP: real-time surplus food redistribution app",
+  "name": "aaharsetu",
+  "version": "2.0.0",
+  "description": "AaharSetu - SPPU CEP: two-tier surplus food rescue (people, then compost) with a live environmental impact ledger",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js && node --check app.js && node scripts/check-locations.js",
+    "test": "node scripts/test.js",
+    "check:ui": "node scripts/browser-check.js"
   },
   "engines": {
     "node": ">=18"
